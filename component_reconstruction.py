@@ -46,6 +46,10 @@ def get_sdss_spectra(names):
     return waves, fluxes
 
 
+def deredshift_spectrum(wave, z):
+    return wave/(z + 1.)
+
+
 def spectra_dict(componentsFile, waveFile, weightsFile):
     reconWave, reconFluxes, names, balFlags = reconstruct_spectra(componentsFile, waveFile, weightsFile)
     sdssWaves, sdssFluxes = get_sdss_spectra(names)
@@ -56,14 +60,10 @@ def spectra_dict(componentsFile, waveFile, weightsFile):
     for i in range(4):
         spectraDict[names[i]] = {'reconWave': reconWave, 'reconFlux': reconFluxes[i], 'balFlag': balFlags[i],
                                  'sdssWave': sdssWaves[i], 'sdssFlux': sdssFluxes[i]}
+        print(min(reconWave), max(reconWave))
+        print(min(sdssWaves[i]), max(sdssWaves[i]))
 
     return spectraDict
-
-
-def save_spectra(componentsFile, waveFile, weightsFile):
-    spectra = spectra_dict(componentsFile, waveFile, weightsFile)
-    with open('spectra.pickle', 'wb') as f:
-        pickle.dump(spectra, f, pickle.HIGHEST_PROTOCOL)
 
 
 def plot_spectrum(name, spectra):
