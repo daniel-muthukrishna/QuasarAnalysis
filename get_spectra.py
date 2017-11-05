@@ -110,14 +110,14 @@ def get_boss_dr12_spec(name):
     return wavelength, dw, flux, err, mask
 
 
-def load_spectra_filenames(spectraFile='spectraFilenames.json'):
+def load_spectra_filenames(spectraFile='spectraFilepaths.json'):
     with open(spectraFile, 'r') as f:
         filenamesDict = json.load(f)
 
     return filenamesDict
 
 
-def get_sdss_dr12_spectrum(name, filenamesDict, whichFiles='icaSpectra'):
+def get_sdss_dr12_spectrum(name, filepathsDict, whichFiles='icaSpectra'):
     """
     :param name:
     :param filenamesDict:
@@ -131,28 +131,11 @@ def get_sdss_dr12_spectrum(name, filenamesDict, whichFiles='icaSpectra'):
         filepath = filepathsDict[name]['sdss']
 
     hdulist = fits.open(filepath)
-
-    data = hdulist[1].data
-    hdr = hdulist[0].header
+    z = hdulist[0].header['Z_ICA']
+    flux = hdulist[0].data[0]
     hdulist.close()
 
-    wavelength = 10 ** np.array([j[1] for j in data])
-    dw = wavelength * (10 ** hdr['COEFF1'] - 1.0)
-    flux = np.array([j[0] for j in data])
-    err = np.sqrt(abs(np.array(
-        [j[6] for j in data])))  # square root of sky #abs added by mjt91 in an attempt to remove error messages
-
-    # create the mask array
-    mask = []
-    for j in range(len(wavelength)):
-        if 5574 < wavelength[j] < 5583:
-            mask.append(0)
-        elif 6297 < wavelength[j] < 6306:
-            mask.append(0)
-        else:
-            mask.append(1)
-
-    return wavelength, dw, flux, err, mask
+    return flux, z
 
 
 if __name__ == '__main__':
