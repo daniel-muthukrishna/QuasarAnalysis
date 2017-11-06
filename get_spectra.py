@@ -129,11 +129,13 @@ def get_sdss_dr12_spectrum(name, filepathsDict, whichFiles='icaSpectra'):
         filepath = filepathsDict[name]['ica']
     elif whichFiles == 'sdssSpectra':
         filepath = filepathsDict[name]['sdss']
+    else:
+        print('Invalid whichFiles argument!')
+        return
 
-    hdulist = fits.open(filepath)
-    z = hdulist[0].header['Z_ICA']
-    flux = hdulist[0].data[0]
-    hdulist.close()
+    with fits.open(filepath, memmap=False) as hdulist:
+        z = hdulist[0].header['Z_ICA']
+        flux = hdulist[0].data[0]
 
     return flux, z
 
