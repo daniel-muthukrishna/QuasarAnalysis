@@ -46,7 +46,6 @@ def get_sdss_spectra(names):
         redshifts.append(z)
         fluxes.append(flux)
 
-
     return fluxes, redshifts
 
 
