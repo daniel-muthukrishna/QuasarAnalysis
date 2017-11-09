@@ -68,7 +68,7 @@ def get_weights(spectra, removeNames, lineType='All'):
                 raise Exception("Invalid lineType argument specified! Arg value must be 'All', 'BALs', or 'nonBALs'")
 
     weightsArray = np.array(weightsArray)
-    weightsDF = pd.DataFrame(data=weightsArray, columns=weightLabels)
+    weightsDF = pd.DataFrame(data=weightsArray, columns=weightLabels).loc[:, 'w1':'w6']
 
     return weightsDF, pd.DataFrame(namesShortenedList)
 
@@ -80,11 +80,17 @@ def plot_weights(spectra, removeNames):
     corner.corner(weightsDF)
 
     c = ChainConsumer()
-    c.add_chain(weightsDFBals.values, parameters=weightsDF.columns.tolist())
-    c.add_chain(weightsDFNonBals.values, parameters=weightsDF.columns.tolist())
-    # c.add_chain(weightsDF.values, parameters=weightsDF.columns.tolist())
+    c.add_chain(weightsDFBals.values, parameters=weightsDF.columns.tolist(), name='BALs')
+    c.add_chain(weightsDFNonBals.values, parameters=weightsDF.columns.tolist(), name='non-BALs')
+    # c.add_chain(weightsDF.values, parameters=weightsDF.columns.tolist(), name='All')
 
     c.plotter.plot()
+
+    # for label1 in weightsDF.columns.tolist():
+    #     for label2 in weightsDF.columns.tolist():
+    #         if label1[1] > label1[1]:
+    #             plt.figure("%s vs %s" % (label1, label2))
+    #             plt.scatter(weightsDF[label1], weightsDF[label2], alpha=0.3)
 
 
 def clustering(spectra, removeNames, numClusters=3):
@@ -99,7 +105,7 @@ def clustering(spectra, removeNames, numClusters=3):
 
     fig, ax = plt.subplots(nrows=6, ncols=6, sharex='col', sharey='row')
     fig.subplots_adjust(wspace=0, hspace=0)
-    colmap = {1: 'r', 2: 'g', 3: 'b', 4: 'c'}
+    colmap = {1: 'r', 2: 'g', 3: 'b', 4: 'c', 5: 'm'}
     colors = list(map(lambda x: colmap[x + 1], labels))
 
     for i, label1 in enumerate(weightNames):
@@ -115,22 +121,28 @@ def clustering(spectra, removeNames, numClusters=3):
 
     clusters = {}
     for i in range(numClusters):
-        clusters[i] = {'weights': [], 'names': [], 'reconFluxes': [], 'sdssFluxes': []}
+        clusters[i] = {'weights': [], 'names': [], 'reconFluxes': [], 'sdssFluxes': [], 'balCounts': 0, 'nonBalCounts': 0}
     for (idx, weightsRow), (idx2, nameDF) in zip(weightsDF.iterrows(), namesDF.iterrows()):
         name = nameDF.values[0]
         clusters[labels[idx]]['weights'].append(weightsRow.values)
         clusters[labels[idx]]['names'].append(name)
         clusters[labels[idx]]['reconFluxes'].append(spectra[name]['reconFlux'])
         clusters[labels[idx]]['sdssFluxes'].append(spectra[name]['sdssFlux'])
+        if spectra[name]['balFlag']:
+            clusters[labels[idx]]['balCounts'] += 1
+        else:
+            clusters[labels[idx]]['nonBalCounts'] += 1
+
     for i in range(numClusters):
         clusters[labels[i]]['weights'] = np.array(clusters[labels[i]]['weights'])
         clusters[labels[i]]['names'] = np.array(clusters[labels[i]]['names'])
         clusters[labels[i]]['reconFluxes'] = np.array(clusters[labels[i]]['reconFluxes'])
         clusters[labels[i]]['sdssFluxes'] = np.array(clusters[labels[i]]['sdssFluxes'])
+        print("BAL COUNTS", i, clusters[labels[i]]['balCounts'], clusters[labels[i]]['nonBalCounts'])
 
     c = ChainConsumer()
     for clusterName in clusters.keys():
-        c.add_chain(clusters[clusterName]['weights'], parameters=weightNames)
+        c.add_chain(clusters[clusterName]['weights'], parameters=weightNames, name='c{0}'.format(clusterName))
     c.plotter.plot()
 
     return clusters
@@ -141,15 +153,15 @@ def analyse_clusters(clusters, wave):
     numClusters = len(clusterNames)
 
     plt.figure("Clusters_k{0}_avg_spectra_withSDSS".format(numClusters))
-    plt.title("Clusters_ k{0}".format(numClusters))
+    plt.title("Clusters\_k{0}".format(numClusters))
     for clusterName in clusterNames:
         np.savetxt("Clusters_k{0}_c{1}.txt".format(numClusters, clusterName), clusters[clusterName]['names'], fmt="%s")
         reconFluxes = clusters[clusterName]['reconFluxes']
-        reconFluxAvg = np.average(reconFluxes, axis=0)
-        plt.plot(wave, reconFluxAvg, label="Cluster_{0}_recon".format(clusterName))
+        reconFluxAvg = np.median(reconFluxes, axis=0)
+        plt.plot(wave, reconFluxAvg, label="Cluster{0}\_recon".format(clusterName))
         sdssFluxes = clusters[clusterName]['sdssFluxes']
-        sdssFluxAvg = np.average(sdssFluxes, axis=0)
-        plt.plot(wave, sdssFluxAvg, label="Cluster_{0}_sdss".format(clusterName))
+        sdssFluxAvg = np.median(sdssFluxes, axis=0)
+        plt.plot(wave, sdssFluxAvg, label="Cluster{0}\_sdss".format(clusterName))
     plt.xlabel('Wavelength ($\AA$)')
     plt.ylabel('Flux')
     plt.legend()
