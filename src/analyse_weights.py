@@ -1,52 +1,13 @@
-import pickle
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-from scipy.stats import pearsonr, chisquare
 from sklearn.cluster import KMeans
 import corner
 from chainconsumer import ChainConsumer
-from component_reconstruction import plot_spectrum, smooth
-
-
-def load_spectra(savedSpectra='spectra.pickle'):
-    with open(savedSpectra, 'rb') as f:
-        spectra = pickle.load(f)
-
-    return spectra
-
-
-def compare_reconstruction_and_data(name, spectra):
-    sdssFlux = smooth(spectra[name]['sdssFlux'])
-    reconFlux = spectra[name]['reconFlux']
-    pearsonCorr = round(pearsonr(sdssFlux, reconFlux)[0], 3)
-    chi2 = 0  # round(chisquare(sdssFlux, reconFlux)[0], 0)
-
-    return pearsonCorr, chi2
-
-
-def compare_all(spectra):
-    pearsonVals = []
-    removeNames = []
-    names = list(spectra.keys())
-    for name in names:
-        pearson, chi2 = compare_reconstruction_and_data(name, spectra)
-        pearsonVals.append(pearson)
-        bal = 'BAL' if spectra[name]['balFlag'] else 'non-BAL'
-        if pearson < 0.66 or chi2 > 300:
-            removeNames.append(name)
-            print(pearson, bal, chi2)
-            print("################## {0} ".format(name))
-            # plot_spectrum(name, spectra, addToTitle='PC={0}_{1}'.format(pearson, chi2))
-
-    meanPearson = np.mean(pearsonVals)
-    stdPearson = np.std(pearsonVals)
-    print("Average Pearson: {0}, {1}".format(meanPearson, stdPearson))
-
-    return removeNames
 
 
 def get_weights(spectra, removeNames, lineType='All'):
+    """ Get the Weights DataFrame for each of the spectra """
     weightsArray = []
     namesShortenedList = []
     weightLabels = ['w1', 'w2', 'w3', 'w4', 'w5', 'w6']
@@ -74,6 +35,7 @@ def get_weights(spectra, removeNames, lineType='All'):
 
 
 def plot_weights(spectra, removeNames):
+    """ Plot the weights parameter space """
     weightsDF, namesDF = get_weights(spectra, removeNames, lineType='All')
     weightsDFBals, namesDFBals = get_weights(spectra, removeNames, lineType='BALs')
     weightsDFNonBals, namesDFNonBals = get_weights(spectra, removeNames, lineType='nonBALs')
@@ -94,6 +56,7 @@ def plot_weights(spectra, removeNames):
 
 
 def clustering(spectra, removeNames, numClusters=3):
+    """ Attempt to cluster the weights """
     weightsDF, namesDF = get_weights(spectra, removeNames)
     weightNames = weightsDF.columns.tolist()
 
@@ -149,6 +112,7 @@ def clustering(spectra, removeNames, numClusters=3):
 
 
 def analyse_clusters(clusters, wave):
+    """ Plot the reconstructions of the median spectrum form each cluster """
     clusterNames = list(clusters.keys())
     numClusters = len(clusterNames)
 
@@ -165,15 +129,3 @@ def analyse_clusters(clusters, wave):
     plt.xlabel('Wavelength ($\AA$)')
     plt.ylabel('Flux')
     plt.legend()
-
-if __name__ == '__main__':
-    spectra1 = load_spectra()
-    names1 = list(spectra1.keys())
-    wave1 = spectra1[names1[0]]['reconWave']
-    removeNames1 = compare_all(spectra1)
-    plot_weights(spectra1, removeNames1)
-    clusters1 = clustering(spectra1, removeNames1)
-    analyse_clusters(clusters1, wave1)
-    # for idx in range(10):
-    #     plot_spectrum(names1[idx], spectra1)
-    plt.show()

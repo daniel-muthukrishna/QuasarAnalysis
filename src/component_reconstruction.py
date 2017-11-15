@@ -1,9 +1,7 @@
-import numpy as np
 import matplotlib.pyplot as plt
-from get_spectra import get_sdss_dr12_spectrum, load_spectra_filenames
-from scipy.stats import pearsonr, chisquare
+import numpy as np
 from scipy.signal import medfilt
-from sklearn.cluster import KMeans, k_means
+from src.get_spectra import get_sdss_dr12_spectrum, load_spectra_filenames
 
 
 def get_components(componentsFile):
