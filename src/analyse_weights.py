@@ -55,32 +55,14 @@ def plot_weights(spectra, removeNames):
     #             plt.scatter(weightsDF[label1], weightsDF[label2], alpha=0.3)
 
 
-def clustering(spectra, removeNames, numClusters=3):
+def clustering(spectra, removeNames, numClusters=3, plotClusters=True):
     """ Attempt to cluster the weights """
     weightsDF, namesDF = get_weights(spectra, removeNames)
-    weightNames = weightsDF.columns.tolist()
 
     kmeans = KMeans(n_clusters=numClusters)
     kmeans.fit(weightsDF)
     labels = kmeans.predict(weightsDF)
     centroids = kmeans.cluster_centers_
-    centroidsDF = pd.DataFrame(data=centroids, columns=weightNames)
-
-    fig, ax = plt.subplots(nrows=6, ncols=6, sharex='col', sharey='row')
-    fig.subplots_adjust(wspace=0, hspace=0)
-    colmap = {1: 'r', 2: 'g', 3: 'b', 4: 'c', 5: 'm'}
-    colors = list(map(lambda x: colmap[x + 1], labels))
-
-    for i, label1 in enumerate(weightNames):
-        for j, label2 in enumerate(weightNames):
-            if label1 != label2 and i >= j:
-                ax[i, j].scatter(weightsDF[label1], weightsDF[label2], color=colors, alpha=0.3)
-                for idx, centroid in centroidsDF.iterrows():
-                    pass  #ax[i, j].scatter(centroid[label1], centroid[label2], color=colmap[idx+1], s=20)
-                if i == 5:
-                    ax[i, j].set_xlabel(label2)
-                if j == 0:
-                    ax[i, j].set_ylabel(label1)
 
     clusters = {}
     for i in range(numClusters):
@@ -103,16 +85,40 @@ def clustering(spectra, removeNames, numClusters=3):
         clusters[labels[i]]['sdssFluxes'] = np.array(clusters[labels[i]]['sdssFluxes'])
         print("BAL COUNTS", i, clusters[labels[i]]['balCounts'], clusters[labels[i]]['nonBalCounts'])
 
+    if plotClusters is True:
+        plot_clusters(clusters, weightsDF, centroids, labels)
+
+    return clusters
+
+
+def plot_clusters(clusters, weightsDF, centroids, labels):
+    weightNames = weightsDF.columns.tolist()
+    centroidsDF = pd.DataFrame(data=centroids, columns=weightNames)
+
+    fig, ax = plt.subplots(nrows=6, ncols=6, sharex='col', sharey='row')
+    fig.subplots_adjust(wspace=0, hspace=0)
+    colmap = {1: 'r', 2: 'g', 3: 'b', 4: 'c', 5: 'm'}
+    colors = list(map(lambda x: colmap[x + 1], labels))
+
+    for i, label1 in enumerate(weightNames):
+        for j, label2 in enumerate(weightNames):
+            if label1 != label2 and i >= j:
+                ax[i, j].scatter(weightsDF[label1], weightsDF[label2], color=colors, alpha=0.3)
+                for idx, centroid in centroidsDF.iterrows():
+                    pass  #ax[i, j].scatter(centroid[label1], centroid[label2], color=colmap[idx+1], s=20)
+                if i == 5:
+                    ax[i, j].set_xlabel(label2)
+                if j == 0:
+                    ax[i, j].set_ylabel(label1)
+
     c = ChainConsumer()
     for clusterName in clusters.keys():
         c.add_chain(clusters[clusterName]['weights'], parameters=weightNames, name='c{0}'.format(clusterName))
     c.plotter.plot()
 
-    return clusters
-
 
 def analyse_clusters(clusters, wave):
-    """ Plot the reconstructions of the median spectrum form each cluster """
+    """ Plot the reconstructions of the median spectrum from each cluster """
     clusterNames = list(clusters.keys())
     numClusters = len(clusterNames)
 
