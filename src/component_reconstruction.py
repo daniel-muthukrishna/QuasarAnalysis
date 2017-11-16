@@ -33,7 +33,7 @@ def reconstruct_spectra(componentsFile, waveFile, weightsFile):
     # components * weights
     reconstructedSpectra = np.transpose(comps.dot(np.transpose(weights)))
 
-    return waves, reconstructedSpectra, names, balFlags, weights
+    return waves, reconstructedSpectra, names, balFlags, weights, comps
 
 
 def get_sdss_spectra(names):
@@ -48,7 +48,7 @@ def get_sdss_spectra(names):
 
 
 def spectra_dict(componentsFile, waveFile, weightsFile):
-    reconWave, reconFluxes, names, balFlags, weights = reconstruct_spectra(componentsFile, waveFile, weightsFile)
+    reconWave, reconFluxes, names, balFlags, weights, comps = reconstruct_spectra(componentsFile, waveFile, weightsFile)
     sdssFluxes, sdssRedshifts = get_sdss_spectra(names)
 
     spectraDict = {}
@@ -57,7 +57,7 @@ def spectra_dict(componentsFile, waveFile, weightsFile):
     for i in range(numSpectra):
         spectraDict[names[i]] = {'reconWave': reconWave, 'reconFlux': reconFluxes[i], 'balFlag': balFlags[i],
                                  'sdssWave': reconWave, 'sdssFlux': sdssFluxes[i], 'sdssRedshifts': sdssRedshifts[i],
-                                 'weights': weights[i]}
+                                 'weights': weights[i], 'comps': comps[i]}
 
     return spectraDict
 

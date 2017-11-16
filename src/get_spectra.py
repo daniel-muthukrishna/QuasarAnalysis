@@ -2,7 +2,7 @@ import json
 from astropy.io import fits
 
 
-def load_spectra_filenames(spectraFile='spectraFilepaths.json'):
+def load_spectra_filenames(spectraFile='../data_files/created/spectraFilepaths.json'):
     with open(spectraFile, 'r') as f:
         filenamesDict = json.load(f)
 
