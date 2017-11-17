@@ -57,7 +57,7 @@ def spectra_dict(componentsFile, waveFile, weightsFile):
     for i in range(numSpectra):
         spectraDict[names[i]] = {'reconWave': reconWave, 'reconFlux': reconFluxes[i], 'balFlag': balFlags[i],
                                  'sdssWave': reconWave, 'sdssFlux': sdssFluxes[i], 'sdssRedshifts': sdssRedshifts[i],
-                                 'weights': weights[i], 'comps': comps[i]}
+                                 'weights': weights[i]}
 
     return spectraDict
 
@@ -79,3 +79,38 @@ def plot_spectrum(name, spectra, addToTitle=''):
     plt.ylabel('Flux')
     bal = 'BAL' if spectra[name]['balFlag'] else 'non-BAL'
     plt.title('{0}_{1}_{2}'.format(name, bal, addToTitle))
+
+
+def reconstruct_each_component(spectra, componentsFile):
+    comps = get_components(componentsFile)
+    flux = {}
+
+    names = list(spectra.keys())
+    for name in names[0:10]:
+        flux[name] = {}
+        weights = spectra[name]['weights']
+        for compNum in range(len(weights)):  # loop though num of comps
+            flux[name][compNum] = comps[:, compNum] * weights[compNum]
+
+    return flux
+
+
+def plot_each_component(spectra, componentsFile):
+    names = list(spectra.keys())
+    numComps = len(spectra[names[0]]['weights'])
+    wave = spectra[names[0]]['reconWave']
+    flux = reconstruct_each_component(spectra, componentsFile)
+
+    for name in names[0:10]:
+        plt.figure(name)
+        plt.plot(wave, spectra[name]['sdssFlux'], label='sdss')
+        plt.plot(wave, spectra[name]['reconFlux'], label='recon')
+        bal = 'BAL' if spectra[name]['balFlag'] else 'non-BAL'
+        for compNum in range(numComps):
+            plt.plot(wave, flux[name][compNum], label=compNum)
+        plt.plot(wave, np.sum([flux[name][compNum] for compNum in range(6)], axis=0), label='0_to_5')
+        plt.xlabel('Wavelength ($\AA$)')
+        plt.ylabel("Median Fractional Difference")
+        plt.title(bal)
+        plt.legend()
+

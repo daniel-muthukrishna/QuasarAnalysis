@@ -41,7 +41,7 @@ def frac_diff(data, recon):
     return fracDiff
 
 
-def frac_diff_all(spectra):
+def frac_diff_all(wave, spectra):
     fracDiffs = {'All': [], 'BAL': [], 'nonBAL': []}
     names = list(spectra.keys())
     for name in names:
@@ -55,12 +55,12 @@ def frac_diff_all(spectra):
             fracDiffs['nonBAL'].append(fracDiff)
 
     for key in fracDiffs.keys():
-        pass # plot_frac_diffs(fracDiffs[key], name=key)
+        pass # plot_frac_diffs(wave, fracDiffs[key], name=key)
 
-    plot_dict_of_frac_diffs(fracDiffs, title='all_bal_nonBal')
+    plot_dict_of_frac_diffs(wave, fracDiffs, title='all_bal_nonBal')
 
 
-def frac_diff_clusters(clusters):
+def frac_diff_clusters(wave, clusters):
     clusterNames = list(clusters.keys())
     fracDiffs = dict((key, []) for key in clusterNames)
 
@@ -72,15 +72,15 @@ def frac_diff_clusters(clusters):
             fracDiffs[clusterName].append(fracDiff)
 
     for key in fracDiffs.keys():
-        pass # plot_frac_diffs(fracDiffs[key], name='Cluster_%s' % key)
+        pass # plot_frac_diffs(wave, fracDiffs[key], name='Cluster_%s' % key)
 
-    plot_dict_of_frac_diffs(fracDiffs, title='Clusters')
+    plot_dict_of_frac_diffs(wave, fracDiffs, title='Clusters')
 
 
-def plot_frac_diffs(fracDiffs, name=''):
+def plot_frac_diffs(wave, fracDiffs, name=''):
     medianFracDiffs = np.median(fracDiffs, axis=0)
     plt.figure("Fractional Difference " + name)
-    plt.plot(medianFracDiffs, label='Median')
+    plt.plot(wave, medianFracDiffs, label='Median')
     # plt.plot(np.mean(fracDiffs, axis=0), label='Mean')
     plt.axhline(0, color='k')
     plt.xlabel('Wavelength ($\AA$)')
@@ -89,12 +89,12 @@ def plot_frac_diffs(fracDiffs, name=''):
     plt.savefig("Figures/Fractional_Difference_{0}".format(name))
 
 
-def plot_dict_of_frac_diffs(fracDiffsDict, title=''):
+def plot_dict_of_frac_diffs(wave, fracDiffsDict, title=''):
     plt.figure("Fractional_Difference_{0}".format(title))
     plt.title(title)
     for key, fracDiffs in fracDiffsDict.items():
         medianFracDiffs = np.median(fracDiffs, axis=0)
-        plt.plot(medianFracDiffs, label=key)
+        plt.plot(wave, medianFracDiffs, label=key)
     plt.axhline(0, color='k')
     # reconFlux = 0.03 * (reconFlux - min(reconFlux)) / (max(reconFlux) - min(reconFlux))
     # plt.plot(reconFlux)
