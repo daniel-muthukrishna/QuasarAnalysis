@@ -22,15 +22,18 @@ class AnalyseSpectraComponents(object):
         return removeNames
 
     def get_clusters(self):
-        clusters = clustering(self.spectra, self.removeNames, plotClusters=False, saveDir=self.saveDir)
-        analyse_clusters(clusters, self.wave, saveDir=self.saveDir)
-        return clusters
+        clustersk2 = clustering(self.spectra, self.removeNames, numClusters=2, plotClusters=True, saveDir=self.saveDir)
+        clustersk3 = clustering(self.spectra, self.removeNames, numClusters=3, plotClusters=True, saveDir=self.saveDir)
+        clustersk4 = clustering(self.spectra, self.removeNames, numClusters=4, plotClusters=True, saveDir=self.saveDir)
+        clustersk5 = clustering(self.spectra, self.removeNames, numClusters=5, plotClusters=True, saveDir=self.saveDir)
+        analyse_clusters(clustersk3, self.wave, saveDir=self.saveDir)
+        return clustersk3
 
     def plot_weights(self):
         plot_weights(self.spectra, self.removeNames, saveDir=self.saveDir)
 
     def calc_frac_diff(self, clusters=None):
-        frac_diff_all(self.wave, self.spectra, self.removeNames, saveDir=self.saveDir)
+        loss = frac_diff_all(self.wave, self.spectra, self.removeNames, saveDir=self.saveDir)
         if clusters is not None:
             frac_diff_clusters(self.wave, clusters, saveDir=self.saveDir)
 
@@ -48,16 +51,16 @@ def main():
     # plot_each_component(spectra, comps)
 
     # MY PCA COMPS ANALYSIS
-    spectraPCA, comps = pca_analysis(spectra)
+    spectraPCA, comps, pcaMean = pca_analysis(spectra)
     myPcaCompsAnalysis = AnalyseSpectraComponents(spectraPCA, saveDir='Figures/MyPCA')
     myPcaCompsAnalysis.do_all()
-    # plot_each_component(spectra, comps)
+    # plot_each_component(spectraPCA, comps, pcaMean)
 
     # MY ICA COMPS ANALYSIS
-    spectraICA, comps = ica_analysis(spectra)
+    spectraICA, comps, icaMean = ica_analysis(spectra)
     myIcaCompsAnalysis = AnalyseSpectraComponents(spectraICA, saveDir='Figures/MyICA')
     myIcaCompsAnalysis.do_all()
-    # plot_each_component(spectra, comps)
+    # plot_each_component(spectraICA, comps, icaMean)
 
     plt.show()
 

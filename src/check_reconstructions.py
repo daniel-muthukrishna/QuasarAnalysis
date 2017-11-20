@@ -60,7 +60,7 @@ def frac_diff_all(wave, spectra, removeNames, saveDir):
     for key in fracDiffs.keys():
         pass # plot_frac_diffs(wave, fracDiffs[key], name=key, saveDir=saveDir)
 
-    plot_dict_of_frac_diffs(wave, fracDiffs, title='all\_bal\_nonBal', saveDir=saveDir)
+    plot_dict_of_frac_diffs(wave, fracDiffs, title='all\_bal\_nonBal', saveDir=saveDir, loss="loss={}".format(round(loss, 5)))
 
     return loss
 
@@ -84,19 +84,19 @@ def frac_diff_clusters(wave, clusters, saveDir):
 
 def plot_frac_diffs(wave, fracDiffs, name, saveDir):
     medianFracDiffs = np.median(fracDiffs, axis=0)
-    plt.figure("Fractional Difference " + name)
+    plt.figure()
     plt.plot(wave, medianFracDiffs, label='Median')
     # plt.plot(np.mean(fracDiffs, axis=0), label='Mean')
     plt.axhline(0, color='k')
     plt.xlabel('Wavelength ($\AA$)')
     plt.ylabel("Fractional Difference")
     plt.legend()
-    plt.savefig("{0}/Fractional_Difference_{1}".format(saveDir, name))
+    plt.savefig("{0}/Fractional_Difference_{1}.png".format(saveDir, name).replace('\\', ''))
 
 
-def plot_dict_of_frac_diffs(wave, fracDiffsDict, title, saveDir):
-    plt.figure("Fractional_Difference_{0}".format(title).strip('\\'))
-    plt.title("{}".format(title))
+def plot_dict_of_frac_diffs(wave, fracDiffsDict, title, saveDir, loss=''):
+    plt.figure()
+    plt.title("{0} {1}".format(title, loss))
     for key, fracDiffs in fracDiffsDict.items():
         medianFracDiffs = np.median(fracDiffs, axis=0)
         plt.plot(wave, medianFracDiffs, label=key)
@@ -106,4 +106,4 @@ def plot_dict_of_frac_diffs(wave, fracDiffsDict, title, saveDir):
     plt.xlabel('Wavelength ($\AA$)')
     plt.ylabel("Median Fractional Difference")
     plt.legend()
-    plt.savefig("{0}/Fractional_Difference_{1}".format(saveDir, title))
+    plt.savefig("{0}/Fractional_Difference_{1}.png".format(saveDir, title).replace('\\', ''))

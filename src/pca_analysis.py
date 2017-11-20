@@ -1,5 +1,6 @@
 import numpy as np
 from sklearn.decomposition import PCA, FastICA
+import copy
 
 
 def get_data_spectra(spectra):
@@ -17,17 +18,17 @@ def pca_analysis(spectra):
     pca = PCA(n_components=5)
     pca.fit(sdssFluxes)
     weights = pca.fit_transform(sdssFluxes)
-    comps = pca.components_
-    reconFluxes = pca.inverse_transform(weights)  # weights.dot(comps) + pca.mean_
+    comps = pca.components_.transpose()
+    reconFluxes = pca.inverse_transform(weights)  # weights.dot(pca.components_) + pca.mean_
     loss = ((sdssFluxes - reconFluxes) ** 2).mean()
 
     spectraPCA = pca_spectra_dict(spectra, weights, reconFluxes)
 
-    return spectraPCA, comps
+    return spectraPCA, comps, pca.mean_
 
 
 def pca_spectra_dict(spectra, weights, reconFluxes):
-    spectraPCA = spectra
+    spectraPCA = copy.deepcopy(spectra)
     names = list(spectraPCA.keys())
     numSpectra = len(names)
 
@@ -43,17 +44,17 @@ def ica_analysis(spectra):
     ica = FastICA(n_components=5)
     ica.fit(sdssFluxes)
     weights = ica.fit_transform(sdssFluxes)
-    comps = ica.components_
-    reconFluxes = ica.inverse_transform(weights)  # weights.dot(comps) + ica.mean_
+    comps = ica.components_.transpose()
+    reconFluxes = ica.inverse_transform(weights)  # weights.dot(ica.mixing_) + ica.mean_
     loss = ((sdssFluxes - reconFluxes) ** 2).mean()
 
     spectraICA = ica_spectra_dict(spectra, weights, reconFluxes)
 
-    return spectraICA, comps
+    return spectraICA, ica.mixing_, ica.mean_
 
 
 def ica_spectra_dict(spectra, weights, reconFluxes):
-    spectraICA = spectra
+    spectraICA = copy.deepcopy(spectra)
     names = list(spectraICA.keys())
     numSpectra = len(names)
 

@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -46,8 +47,9 @@ def plot_weights(spectra, removeNames, saveDir):
     c.add_chain(weightsDFBals.values, parameters=weightsDF.columns.tolist(), name='BALs')
     c.add_chain(weightsDFNonBals.values, parameters=weightsDF.columns.tolist(), name='non-BALs')
     # c.add_chain(weightsDF.values, parameters=weightsDF.columns.tolist(), name='All')
+    c.configure(smooth=None)
 
-    c.plotter.plot(filename="{0}/weights_bal_vs_nonBal".format(saveDir))
+    c.plotter.plot(filename="{0}/weights_bal_vs_nonBal.png".format(saveDir))
 
     # for label1 in weightsDF.columns.tolist():
     #     for label2 in weightsDF.columns.tolist():
@@ -87,6 +89,9 @@ def clustering(spectra, removeNames, numClusters=3, plotClusters=True, saveDir='
         print("BAL COUNTS", i, clusters[labels[i]]['balCounts'], clusters[labels[i]]['nonBalCounts'])
 
     if plotClusters is True:
+        # saveDir = os.path.join(saveDir, 'cluster_distributions')
+        # if not os.path.exists(saveDir):
+        #     os.makedirs(saveDir)
         plot_clusters(clusters, weightsDF, centroids, labels, saveDir)
 
     return clusters
@@ -95,28 +100,31 @@ def clustering(spectra, removeNames, numClusters=3, plotClusters=True, saveDir='
 def plot_clusters(clusters, weightsDF, centroids, labels, saveDir):
     weightNames = weightsDF.columns.tolist()
     centroidsDF = pd.DataFrame(data=centroids, columns=weightNames)
+    numClusters = len(clusters.keys())
 
-    fig, ax = plt.subplots(nrows=6, ncols=6, sharex='col', sharey='row')
-    fig.subplots_adjust(wspace=0, hspace=0)
-    colmap = {1: 'r', 2: 'g', 3: 'b', 4: 'c', 5: 'm'}
-    colors = list(map(lambda x: colmap[x + 1], labels))
-
-    for i, label1 in enumerate(weightNames):
-        for j, label2 in enumerate(weightNames):
-            if label1 != label2 and i >= j:
-                ax[i, j].scatter(weightsDF[label1], weightsDF[label2], color=colors, alpha=0.3)
-                for idx, centroid in centroidsDF.iterrows():
-                    pass  #ax[i, j].scatter(centroid[label1], centroid[label2], color=colmap[idx+1], s=20)
-                if i == 5:
-                    ax[i, j].set_xlabel(label2)
-                if j == 0:
-                    ax[i, j].set_ylabel(label1)
+    # fig, ax = plt.subplots(nrows=6, ncols=6, sharex='col', sharey='row')
+    # fig.subplots_adjust(wspace=0, hspace=0)
+    # colmap = {1: 'r', 2: 'g', 3: 'b', 4: 'c', 5: 'm', 6: 'y'}
+    # colors = list(map(lambda x: colmap[x + 1], labels))
+    #
+    # for i, label1 in enumerate(weightNames):
+    #     for j, label2 in enumerate(weightNames):
+    #         if label1 != label2 and i >= j:
+    #             ax[i, j].scatter(weightsDF[label1], weightsDF[label2], color=colors, alpha=0.3)
+    #             for idx, centroid in centroidsDF.iterrows():
+    #                 pass  #ax[i, j].scatter(centroid[label1], centroid[label2], color=colmap[idx+1], s=20)
+    #             if i == 5:
+    #                 ax[i, j].set_xlabel(label2)
+    #             if j == 0:
+    #                 ax[i, j].set_ylabel(label1)
+    # fig.savefig("{0}/clusters_distribution_k{1}.png".format(saveDir, numClusters))
 
     c = ChainConsumer()
     for clusterName in clusters.keys():
-        c.add_chain(clusters[clusterName]['weights'], parameters=weightNames, name='c{0}'.format(clusterName))
-    numClusters = len(clusters.keys())
-    c.plotter.plot(filename="{0}/clusters_contours_k{1}".format(saveDir, numClusters))
+        c.add_chain(np.array(clusters[clusterName]['weights']), parameters=weightNames, name='c{0}'.format(clusterName))
+    c.configure(smooth=None)
+    c.plotter.plot(filename="{0}/clusters_contours_k{1}.png".format(saveDir, numClusters))
+
 
 
 def analyse_clusters(clusters, wave, saveDir):
@@ -124,17 +132,17 @@ def analyse_clusters(clusters, wave, saveDir):
     clusterNames = list(clusters.keys())
     numClusters = len(clusterNames)
 
-    plt.figure("Clusters_k{0}_avg_spectra_withSDSS".format(numClusters))
-    plt.title("Clusters_k{0}".format(numClusters))
+    plt.figure()
+    plt.title("Cluster\_k{0}".format(numClusters))
     for clusterName in clusterNames:
         np.savetxt("Clusters_k{0}_c{1}.txt".format(numClusters, clusterName), clusters[clusterName]['names'], fmt="%s")
         reconFluxes = clusters[clusterName]['reconFluxes']
         reconFluxAvg = np.median(reconFluxes, axis=0)
-        plt.plot(wave, reconFluxAvg, label="Cluster{0}\_recon".format(clusterName))
+        plt.plot(wave, reconFluxAvg, label="$Cluster{0}\_recon$".format(clusterName))
         sdssFluxes = clusters[clusterName]['sdssFluxes']
         sdssFluxAvg = np.median(sdssFluxes, axis=0)
-        plt.plot(wave, sdssFluxAvg, label="Cluster{0}\_sdss".format(clusterName))
+        plt.plot(wave, sdssFluxAvg, label="$Cluster{0}\_sdss$".format(clusterName))
     plt.xlabel('Wavelength ($\AA$)')
     plt.ylabel('Flux')
     plt.legend()
-    plt.savefig("{0}/Clusters_k{1}_avg_spectra_withSDSS".format(saveDir, numClusters))
+    plt.savefig("{0}/Clusters_k{1}_avg_spectra_withSDSS.png".format(saveDir, numClusters))

@@ -67,11 +67,11 @@ def deredshift_spectrum(wave, z):
 
 
 def smooth(flux):
-    return flux #medfilt(flux, kernel_size=7)
+    return medfilt(flux, kernel_size=7)
 
 
 def plot_spectrum(name, spectra, addToTitle=''):
-    plt.figure(name)
+    plt.figure()
     plt.plot(spectra[name]['sdssWave'], smooth(spectra[name]['sdssFlux']), label='DR12_spectrum')
     plt.plot(spectra[name]['reconWave'], spectra[name]['reconFlux'], label='reconstruction')
     plt.legend()
@@ -94,22 +94,22 @@ def reconstruct_each_component(spectra, comps):
     return flux
 
 
-def plot_each_component(spectra, comps):
+def plot_each_component(spectra, comps, mean=0):
     names = list(spectra.keys())
     numComps = len(spectra[names[0]]['weights'])
     wave = spectra[names[0]]['reconWave']
     flux = reconstruct_each_component(spectra, comps)
 
     for name in names[0:10]:
-        plt.figure(name)
-        plt.plot(wave, spectra[name]['sdssFlux'], label='sdss')
+        plt.figure()
+        plt.plot(wave, smooth(spectra[name]['sdssFlux']), label='sdss')
         plt.plot(wave, spectra[name]['reconFlux'], label='recon')
         bal = 'BAL' if spectra[name]['balFlag'] else 'non-BAL'
         for compNum in range(numComps):
-            plt.plot(wave, flux[name][compNum], label=compNum)
-        plt.plot(wave, np.sum([flux[name][compNum] for compNum in range(6)], axis=0), label='0\_to\_5')
+            plt.plot(wave, flux[name][compNum], label=compNum+1)
+        plt.plot(wave, np.sum([flux[name][compNum] for compNum in range(numComps)], axis=0) + mean, label='$1\_to\_{0}$'.format(numComps))
         plt.xlabel('Wavelength ($\AA$)')
         plt.ylabel("Median Fractional Difference")
-        plt.title(bal)
+        plt.title("{0}: {1}".format(bal, name))
         plt.legend()
 
