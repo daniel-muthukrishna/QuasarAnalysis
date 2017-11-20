@@ -10,8 +10,9 @@ def get_weights(spectra, removeNames, lineType='All'):
     """ Get the Weights DataFrame for each of the spectra """
     weightsArray = []
     namesShortenedList = []
-    weightLabels = ['w1', 'w2', 'w3', 'w4', 'w5', 'w6']
     names = list(spectra.keys())
+    numComps = len(spectra[names[0]]['weights'])
+    weightLabels = ['w{0}'.format(i+1) for i in range(numComps)]
     for name in names:
         if name not in removeNames:
             if lineType == 'All':
@@ -29,24 +30,24 @@ def get_weights(spectra, removeNames, lineType='All'):
                 raise Exception("Invalid lineType argument specified! Arg value must be 'All', 'BALs', or 'nonBALs'")
 
     weightsArray = np.array(weightsArray)
-    weightsDF = pd.DataFrame(data=weightsArray, columns=weightLabels).loc[:, 'w1':'w6']
+    weightsDF = pd.DataFrame(data=weightsArray, columns=weightLabels)
 
     return weightsDF, pd.DataFrame(namesShortenedList)
 
 
-def plot_weights(spectra, removeNames):
+def plot_weights(spectra, removeNames, saveDir):
     """ Plot the weights parameter space """
     weightsDF, namesDF = get_weights(spectra, removeNames, lineType='All')
     weightsDFBals, namesDFBals = get_weights(spectra, removeNames, lineType='BALs')
     weightsDFNonBals, namesDFNonBals = get_weights(spectra, removeNames, lineType='nonBALs')
-    corner.corner(weightsDF)
+    # corner.corner(weightsDF)
 
     c = ChainConsumer()
     c.add_chain(weightsDFBals.values, parameters=weightsDF.columns.tolist(), name='BALs')
     c.add_chain(weightsDFNonBals.values, parameters=weightsDF.columns.tolist(), name='non-BALs')
     # c.add_chain(weightsDF.values, parameters=weightsDF.columns.tolist(), name='All')
 
-    c.plotter.plot()
+    c.plotter.plot(filename="{0}/weights_bal_vs_nonBal".format(saveDir))
 
     # for label1 in weightsDF.columns.tolist():
     #     for label2 in weightsDF.columns.tolist():
@@ -55,7 +56,7 @@ def plot_weights(spectra, removeNames):
     #             plt.scatter(weightsDF[label1], weightsDF[label2], alpha=0.3)
 
 
-def clustering(spectra, removeNames, numClusters=3, plotClusters=True):
+def clustering(spectra, removeNames, numClusters=3, plotClusters=True, saveDir='Figures'):
     """ Attempt to cluster the weights """
     weightsDF, namesDF = get_weights(spectra, removeNames)
 
@@ -86,12 +87,12 @@ def clustering(spectra, removeNames, numClusters=3, plotClusters=True):
         print("BAL COUNTS", i, clusters[labels[i]]['balCounts'], clusters[labels[i]]['nonBalCounts'])
 
     if plotClusters is True:
-        plot_clusters(clusters, weightsDF, centroids, labels)
+        plot_clusters(clusters, weightsDF, centroids, labels, saveDir)
 
     return clusters
 
 
-def plot_clusters(clusters, weightsDF, centroids, labels):
+def plot_clusters(clusters, weightsDF, centroids, labels, saveDir):
     weightNames = weightsDF.columns.tolist()
     centroidsDF = pd.DataFrame(data=centroids, columns=weightNames)
 
@@ -114,16 +115,17 @@ def plot_clusters(clusters, weightsDF, centroids, labels):
     c = ChainConsumer()
     for clusterName in clusters.keys():
         c.add_chain(clusters[clusterName]['weights'], parameters=weightNames, name='c{0}'.format(clusterName))
-    c.plotter.plot()
+    numClusters = len(clusters.keys())
+    c.plotter.plot(filename="{0}/clusters_contours_k{1}".format(saveDir, numClusters))
 
 
-def analyse_clusters(clusters, wave):
+def analyse_clusters(clusters, wave, saveDir):
     """ Plot the reconstructions of the median spectrum from each cluster """
     clusterNames = list(clusters.keys())
     numClusters = len(clusterNames)
 
     plt.figure("Clusters_k{0}_avg_spectra_withSDSS".format(numClusters))
-    plt.title("Clusters\_k{0}".format(numClusters))
+    plt.title("Clusters_k{0}".format(numClusters))
     for clusterName in clusterNames:
         np.savetxt("Clusters_k{0}_c{1}.txt".format(numClusters, clusterName), clusters[clusterName]['names'], fmt="%s")
         reconFluxes = clusters[clusterName]['reconFluxes']
@@ -135,3 +137,4 @@ def analyse_clusters(clusters, wave):
     plt.xlabel('Wavelength ($\AA$)')
     plt.ylabel('Flux')
     plt.legend()
+    plt.savefig("{0}/Clusters_k{1}_avg_spectra_withSDSS".format(saveDir, numClusters))

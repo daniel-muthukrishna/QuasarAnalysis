@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.stats import pearsonr
+from scipy.stats import pearsonr, chisquare
 from src.component_reconstruction import smooth
 
 
@@ -25,8 +25,7 @@ def compare_all(spectra):
         bal = 'BAL' if spectra[name]['balFlag'] else 'non-BAL'
         if pearson < 0.66 or chi2 > 300:
             removeNames.append(name)
-            print(pearson, bal, chi2)
-            print("################## {0} ".format(name))
+            # print(name, pearson, bal, chi2)
             # plot_spectrum(name, spectra, addToTitle='PC={0}_{1}'.format(pearson, chi2))
 
     meanPearson = np.mean(pearsonVals)
@@ -41,26 +40,32 @@ def frac_diff(data, recon):
     return fracDiff
 
 
-def frac_diff_all(wave, spectra):
+def frac_diff_all(wave, spectra, removeNames, saveDir):
     fracDiffs = {'All': [], 'BAL': [], 'nonBAL': []}
+    lossSquared = []
     names = list(spectra.keys())
     for name in names:
-        sdssFlux = spectra[name]['sdssFlux']
-        reconFlux = spectra[name]['reconFlux']
-        fracDiff = frac_diff(sdssFlux, reconFlux)
-        fracDiffs['All'].append(fracDiff)
-        if spectra[name]['balFlag']:
-            fracDiffs['BAL'].append(fracDiff)
-        else:
-            fracDiffs['nonBAL'].append(fracDiff)
-
+        if name not in removeNames:
+            sdssFlux = spectra[name]['sdssFlux']
+            reconFlux = spectra[name]['reconFlux']
+            fracDiff = frac_diff(sdssFlux, reconFlux)
+            lossSquared.append((sdssFlux-reconFlux)**2)
+            fracDiffs['All'].append(fracDiff)
+            if spectra[name]['balFlag']:
+                fracDiffs['BAL'].append(fracDiff)
+            else:
+                fracDiffs['nonBAL'].append(fracDiff)
+    loss = np.mean(lossSquared)
+    print("Reconstruction Loss is: {0}".format(loss))
     for key in fracDiffs.keys():
-        pass # plot_frac_diffs(wave, fracDiffs[key], name=key)
+        pass # plot_frac_diffs(wave, fracDiffs[key], name=key, saveDir=saveDir)
 
-    plot_dict_of_frac_diffs(wave, fracDiffs, title='all_bal_nonBal')
+    plot_dict_of_frac_diffs(wave, fracDiffs, title='all\_bal\_nonBal', saveDir=saveDir)
+
+    return loss
 
 
-def frac_diff_clusters(wave, clusters):
+def frac_diff_clusters(wave, clusters, saveDir):
     clusterNames = list(clusters.keys())
     fracDiffs = dict((key, []) for key in clusterNames)
 
@@ -72,12 +77,12 @@ def frac_diff_clusters(wave, clusters):
             fracDiffs[clusterName].append(fracDiff)
 
     for key in fracDiffs.keys():
-        pass # plot_frac_diffs(wave, fracDiffs[key], name='Cluster_%s' % key)
+        pass # plot_frac_diffs(wave, fracDiffs[key], name='Cluster_%s' % key, saveDir)
 
-    plot_dict_of_frac_diffs(wave, fracDiffs, title='Clusters')
+    plot_dict_of_frac_diffs(wave, fracDiffs, title='Clusters', saveDir=saveDir)
 
 
-def plot_frac_diffs(wave, fracDiffs, name=''):
+def plot_frac_diffs(wave, fracDiffs, name, saveDir):
     medianFracDiffs = np.median(fracDiffs, axis=0)
     plt.figure("Fractional Difference " + name)
     plt.plot(wave, medianFracDiffs, label='Median')
@@ -86,12 +91,12 @@ def plot_frac_diffs(wave, fracDiffs, name=''):
     plt.xlabel('Wavelength ($\AA$)')
     plt.ylabel("Fractional Difference")
     plt.legend()
-    plt.savefig("Figures/Fractional_Difference_{0}".format(name))
+    plt.savefig("{0}/Fractional_Difference_{1}".format(saveDir, name))
 
 
-def plot_dict_of_frac_diffs(wave, fracDiffsDict, title=''):
-    plt.figure("Fractional_Difference_{0}".format(title))
-    plt.title(title)
+def plot_dict_of_frac_diffs(wave, fracDiffsDict, title, saveDir):
+    plt.figure("Fractional_Difference_{0}".format(title).strip('\\'))
+    plt.title("{}".format(title))
     for key, fracDiffs in fracDiffsDict.items():
         medianFracDiffs = np.median(fracDiffs, axis=0)
         plt.plot(wave, medianFracDiffs, label=key)
@@ -101,4 +106,4 @@ def plot_dict_of_frac_diffs(wave, fracDiffsDict, title=''):
     plt.xlabel('Wavelength ($\AA$)')
     plt.ylabel("Median Fractional Difference")
     plt.legend()
-    plt.savefig("Figures/Fractional_Difference_{0}".format(title))
+    plt.savefig("{0}/Fractional_Difference_{1}".format(saveDir, title))
