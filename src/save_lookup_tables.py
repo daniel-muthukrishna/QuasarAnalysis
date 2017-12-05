@@ -20,7 +20,7 @@ def save_filepaths(filepathsFile, savePath='data_files/created/spectraFilepaths.
         filepathsDict[name] = {'ica': icaFile, 'sdss': sdssFile}
 
     savePathDir = os.path.join(MAIN_DIR, os.path.dirname(savePath))
-    if not os.path.exists(savePathDir)
+    if not os.path.exists(savePathDir):
         os.makedirs(savePathDir)
     with open(os.path.join(MAIN_DIR, savePath), 'w') as f:
         json.dump(filepathsDict, f, sort_keys=True)
