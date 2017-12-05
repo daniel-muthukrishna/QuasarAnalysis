@@ -21,7 +21,7 @@ def get_sdss_dr12_spectrum(name, filepathsDict):
     with fits.open(filepathSDSS, memmap=False) as hdulist:
         data = hdulist[2].data
         otherInfo['mag'] = data['PSFMAG'][0]
-        otherInfo['magErr'] = data['PSFMAGERR']
+        otherInfo['magErr'] = data['PSFMAGERR'][0]
 
     return flux, z, otherInfo
 

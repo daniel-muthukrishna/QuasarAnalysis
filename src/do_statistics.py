@@ -5,6 +5,7 @@ from src.check_reconstructions import compare_all, frac_diff_all, frac_diff_clus
 from src.analyse_weights import clustering, analyse_clusters, plot_weights, plot_clusters
 from src.pca_analysis import pca_analysis, ica_analysis
 from src.component_reconstruction import plot_each_component
+from src.analyse_BAL_properties import plot_mags
 
 
 class AnalyseSpectraComponents(object):
@@ -22,10 +23,10 @@ class AnalyseSpectraComponents(object):
         return removeNames
 
     def get_clusters(self):
-        clustersk2 = clustering(self.spectra, self.removeNames, numClusters=2, plotClusters=True, saveDir=self.saveDir)
+        # clustersk2 = clustering(self.spectra, self.removeNames, numClusters=2, plotClusters=True, saveDir=self.saveDir)
         clustersk3 = clustering(self.spectra, self.removeNames, numClusters=3, plotClusters=True, saveDir=self.saveDir)
-        clustersk4 = clustering(self.spectra, self.removeNames, numClusters=4, plotClusters=True, saveDir=self.saveDir)
-        clustersk5 = clustering(self.spectra, self.removeNames, numClusters=5, plotClusters=True, saveDir=self.saveDir)
+        # clustersk4 = clustering(self.spectra, self.removeNames, numClusters=4, plotClusters=True, saveDir=self.saveDir)
+        # clustersk5 = clustering(self.spectra, self.removeNames, numClusters=5, plotClusters=True, saveDir=self.saveDir)
         analyse_clusters(clustersk3, self.wave, saveDir=self.saveDir)
         return clustersk3
 
@@ -46,21 +47,22 @@ class AnalyseSpectraComponents(object):
 def main():
     # ORIGINAL COMPS ANALYSIS
     spectra, comps = load_spectra()
-    compsAnalysis = AnalyseSpectraComponents(spectra, saveDir='Figures/OriginalComps')
-    compsAnalysis.do_all()
+    # compsAnalysis = AnalyseSpectraComponents(spectra, saveDir='Figures/OriginalComps')
+    # compsAnalysis.do_all()
+    plot_mags(spectra, saveDir='Figures/OriginalComps')
     # plot_each_component(spectra, comps)
 
-    # MY PCA COMPS ANALYSIS
-    spectraPCA, comps, pcaMean = pca_analysis(spectra)
-    myPcaCompsAnalysis = AnalyseSpectraComponents(spectraPCA, saveDir='Figures/MyPCA')
-    myPcaCompsAnalysis.do_all()
-    # plot_each_component(spectraPCA, comps, pcaMean)
-
-    # MY ICA COMPS ANALYSIS
-    spectraICA, comps, icaMean = ica_analysis(spectra)
-    myIcaCompsAnalysis = AnalyseSpectraComponents(spectraICA, saveDir='Figures/MyICA')
-    myIcaCompsAnalysis.do_all()
-    # plot_each_component(spectraICA, comps, icaMean)
+    # # MY PCA COMPS ANALYSIS
+    # spectraPCA, comps, pcaMean = pca_analysis(spectra)
+    # myPcaCompsAnalysis = AnalyseSpectraComponents(spectraPCA, saveDir='Figures/MyPCA')
+    # myPcaCompsAnalysis.do_all()
+    # # plot_each_component(spectraPCA, comps, pcaMean)
+    #
+    # # MY ICA COMPS ANALYSIS
+    # spectraICA, comps, icaMean = ica_analysis(spectra)
+    # myIcaCompsAnalysis = AnalyseSpectraComponents(spectraICA, saveDir='Figures/MyICA')
+    # myIcaCompsAnalysis.do_all()
+    # # plot_each_component(spectraICA, comps, icaMean)
 
     plt.show()
 
