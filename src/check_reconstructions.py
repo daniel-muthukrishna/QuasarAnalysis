@@ -42,25 +42,27 @@ def frac_diff(data, recon):
 
 def frac_diff_all(wave, spectra, removeNames, saveDir):
     fracDiffs = {'All': [], 'BAL': [], 'nonBAL': []}
-    lossSquared = []
+    lossSquared = {'All': [], 'BAL': [], 'nonBAL': []}
     names = list(spectra.keys())
     for name in names:
         if name not in removeNames:
             sdssFlux = spectra[name]['sdssFlux']
             reconFlux = spectra[name]['reconFlux']
             fracDiff = frac_diff(sdssFlux, reconFlux)
-            lossSquared.append((sdssFlux-reconFlux)**2)
+            lossSquared['All'].append((sdssFlux-reconFlux)**2)
             fracDiffs['All'].append(fracDiff)
             if spectra[name]['balFlag']:
                 fracDiffs['BAL'].append(fracDiff)
+                lossSquared['BAL'].append((sdssFlux - reconFlux) ** 2)
             else:
                 fracDiffs['nonBAL'].append(fracDiff)
-    loss = np.mean(lossSquared)
+                lossSquared['nonBAL'].append((sdssFlux - reconFlux) ** 2)
+    loss = {key: np.mean(val) for key, val in lossSquared.items()}
     print("Reconstruction Loss is: {0}".format(loss))
     for key in fracDiffs.keys():
-        pass # plot_frac_diffs(wave, fracDiffs[key], name=key, saveDir=saveDir)
+        pass  # plot_frac_diffs(wave, fracDiffs[key], name=key, saveDir=saveDir)
 
-    plot_dict_of_frac_diffs(wave, fracDiffs, title='all\_bal\_nonBal', saveDir=saveDir, loss="loss={}".format(round(loss, 5)))
+    plot_dict_of_frac_diffs(wave, fracDiffs, title='all\_bal\_nonBal', saveDir=saveDir, loss=loss)
 
     return loss
 
@@ -77,7 +79,7 @@ def frac_diff_clusters(wave, clusters, saveDir):
             fracDiffs[clusterName].append(fracDiff)
 
     for key in fracDiffs.keys():
-        pass # plot_frac_diffs(wave, fracDiffs[key], name='Cluster_%s' % key, saveDir)
+        pass  # plot_frac_diffs(wave, fracDiffs[key], name='Cluster_%s' % key, saveDir)
 
     plot_dict_of_frac_diffs(wave, fracDiffs, title='Clusters', saveDir=saveDir)
 
@@ -94,12 +96,15 @@ def plot_frac_diffs(wave, fracDiffs, name, saveDir):
     plt.savefig("{0}/Fractional_Difference_{1}.png".format(saveDir, name).replace('\\', ''))
 
 
-def plot_dict_of_frac_diffs(wave, fracDiffsDict, title, saveDir, loss=''):
+def plot_dict_of_frac_diffs(wave, fracDiffsDict, title, saveDir, loss=None):
     plt.figure()
-    plt.title("{0} {1}".format(title, loss))
+    plt.title(title)
     for key, fracDiffs in fracDiffsDict.items():
+        lossVal = ": loss={0}".format(round(loss[key], 5)) if loss is not None else ''
         medianFracDiffs = np.median(fracDiffs, axis=0)
-        plt.plot(wave, medianFracDiffs, label=key)
+        stdFracDiffs = np.std(fracDiffs, axis=0)
+        plt.plot(wave, medianFracDiffs, label="{0}{1}".format(key, lossVal), zorder=10)
+        # plt.fill_between(wave, medianFracDiffs-stdFracDiffs, medianFracDiffs+stdFracDiffs, alpha=0.3)
     plt.axhline(0, color='k')
     # reconFlux = 0.03 * (reconFlux - min(reconFlux)) / (max(reconFlux) - min(reconFlux))
     # plt.plot(reconFlux)

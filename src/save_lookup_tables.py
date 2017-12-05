@@ -13,13 +13,16 @@ def save_spectra(componentsFile, waveFile, weightsFile):
         pickle.dump(spectra, f, pickle.HIGHEST_PROTOCOL)
 
 
-def save_filepaths(filepathsFile):
+def save_filepaths(filepathsFile, savePath='data_files/created/spectraFilepaths.json'):
     filepathsDict = {}
     filepathsInfo = np.genfromtxt(filepathsFile, dtype=str)
     for name, icaFile, sdssFile in filepathsInfo:
         filepathsDict[name] = {'ica': icaFile, 'sdss': sdssFile}
 
-    with open(os.path.join(MAIN_DIR, 'data_files/created/spectraFilepaths.json'), 'w') as f:
+    savePathDir = os.path.join(MAIN_DIR, os.path.dirname(savePath))
+    if not os.path.exists(savePathDir)
+        os.makedirs(savePathDir)
+    with open(os.path.join(MAIN_DIR, savePath), 'w') as f:
         json.dump(filepathsDict, f, sort_keys=True)
 
     return filepathsDict

@@ -49,7 +49,10 @@ def plot_weights(spectra, removeNames, saveDir):
     # c.add_chain(weightsDF.values, parameters=weightsDF.columns.tolist(), name='All')
     c.configure(smooth=None)
 
-    c.plotter.plot(filename="{0}/weights_bal_vs_nonBal.png".format(saveDir))
+    try:
+        c.plotter.plot(filename="{0}/weights_bal_vs_nonBal.png".format(saveDir))
+    except ValueError:
+        c.plotter.plot()
 
     # for label1 in weightsDF.columns.tolist():
     #     for label2 in weightsDF.columns.tolist():
@@ -123,8 +126,10 @@ def plot_clusters(clusters, weightsDF, centroids, labels, saveDir):
     for clusterName in clusters.keys():
         c.add_chain(np.array(clusters[clusterName]['weights']), parameters=weightNames, name='c{0}'.format(clusterName))
     c.configure(smooth=None)
-    c.plotter.plot(filename="{0}/clusters_contours_k{1}.png".format(saveDir, numClusters))
-
+    try:
+        c.plotter.plot(filename="{0}/clusters_contours_k{1}.png".format(saveDir, numClusters))
+    except ValueError:
+        c.plotter.plot()
 
 
 def analyse_clusters(clusters, wave, saveDir):

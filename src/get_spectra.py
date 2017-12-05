@@ -9,7 +9,7 @@ def load_spectra_filenames(spectraFile='../data_files/created/spectraFilepaths.j
     return filenamesDict
 
 
-def get_sdss_dr12_spectrum(name, filepathsDict, whichFiles='icaSpectra'):
+def get_sdss_dr12_spectrum(name, filepathsDict):
     """
     :param name:
     :param filenamesDict:
@@ -17,19 +17,18 @@ def get_sdss_dr12_spectrum(name, filepathsDict, whichFiles='icaSpectra'):
     :return:
     """
 
-    if whichFiles == 'icaSpectra':
-        filepath = filepathsDict[name]['ica']
-    elif whichFiles == 'sdssSpectra':
-        filepath = filepathsDict[name]['sdss']
-    else:
-        print('Invalid whichFiles argument!')
-        return
+    filepathICA = filepathsDict[name]['ica']
+    filepathSDSS = filepathsDict[name]['sdss']
 
-    with fits.open(filepath, memmap=False) as hdulist:
+    with fits.open(filepathICA, memmap=False) as hdulist:
         z = hdulist[0].header['Z_ICA']
         flux = hdulist[0].data[0]
 
-    return flux, z
+    with fits.open(filepathSDSS, memmap=False) as hdulist:
+        data = hdulist[2].data
+        mag = data['PSFMAG'][0]
+
+    return flux, z, mag
 
 
 if __name__ == '__main__':

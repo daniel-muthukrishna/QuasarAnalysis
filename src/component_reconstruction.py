@@ -37,19 +37,20 @@ def reconstruct_spectra(componentsFile, waveFile, weightsFile):
 
 
 def get_sdss_spectra(names):
-    redshifts, fluxes = [], []
+    redshifts, fluxes, mags = [], [], []
     filenamesDict = load_spectra_filenames()
     for name in names[0:]:
-        flux, z = get_sdss_dr12_spectrum(name, filenamesDict)
+        flux, z, mag = get_sdss_dr12_spectrum(name, filenamesDict)
         redshifts.append(z)
         fluxes.append(flux)
+        mags.append(mag)
 
-    return fluxes, redshifts
+    return fluxes, redshifts, mags
 
 
 def spectra_dict(componentsFile, waveFile, weightsFile):
     reconWave, reconFluxes, names, balFlags, weights, comps = reconstruct_spectra(componentsFile, waveFile, weightsFile)
-    sdssFluxes, sdssRedshifts = get_sdss_spectra(names)
+    sdssFluxes, sdssRedshifts, mags = get_sdss_spectra(names)
 
     spectraDict = {}
     numSpectra = len(names)
@@ -57,7 +58,7 @@ def spectra_dict(componentsFile, waveFile, weightsFile):
     for i in range(numSpectra):
         spectraDict[names[i]] = {'reconWave': reconWave, 'reconFlux': reconFluxes[i], 'balFlag': balFlags[i],
                                  'sdssWave': reconWave, 'sdssFlux': sdssFluxes[i], 'sdssRedshifts': sdssRedshifts[i],
-                                 'weights': weights[i]}
+                                 'weights': weights[i], 'mags': mags[i]}
 
     return spectraDict
 
