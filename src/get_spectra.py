@@ -10,13 +10,6 @@ def load_spectra_filenames(spectraFile='../data_files/created/spectraFilepaths.j
 
 
 def get_sdss_dr12_spectrum(name, filepathsDict):
-    """
-    :param name:
-    :param filenamesDict:
-    :param whichFiles: 'icaSpectra' or 'sdssSpectra' are the two possible arguments
-    :return:
-    """
-
     filepathICA = filepathsDict[name]['ica']
     filepathSDSS = filepathsDict[name]['sdss']
 
@@ -24,18 +17,16 @@ def get_sdss_dr12_spectrum(name, filepathsDict):
         z = hdulist[0].header['Z_ICA']
         flux = hdulist[0].data[0]
 
+    otherInfo = {}
     with fits.open(filepathSDSS, memmap=False) as hdulist:
         data = hdulist[2].data
-        mag = data['PSFMAG'][0]
+        otherInfo['mag'] = data['PSFMAG'][0]
+        otherInfo['magErr'] = data['PSFMAGERR']
 
-    return flux, z, mag
+    return flux, z, otherInfo
 
 
 if __name__ == '__main__':
-    wavelength, dw, flux, err, mask = get_boss_dr12_spec('000000.66+145828.8')
+    filenamesDict = load_spectra_filenames()
+    flux, z, otherInfo = get_sdss_dr12_spectrum('000000.66+145828.8')
 
-    import matplotlib.pyplot as plt
-
-    fig, ax = plt.subplots()
-    ax.plot(wavelength, mask * flux)
-    plt.show()
