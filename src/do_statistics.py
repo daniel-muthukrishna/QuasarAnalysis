@@ -5,7 +5,7 @@ from src.check_reconstructions import compare_all, frac_diff_all, frac_diff_clus
 from src.analyse_weights import clustering, analyse_clusters, plot_weights, plot_clusters
 from src.pca_analysis import pca_analysis, ica_analysis
 from src.component_reconstruction import plot_each_component
-from src.analyse_BAL_properties import plot_mags
+from src.analyse_BAL_properties import PlotProperties
 
 
 class AnalyseSpectraComponents(object):
@@ -48,23 +48,24 @@ class AnalyseSpectraComponents(object):
 
 def main():
     # ORIGINAL COMPS ANALYSIS
-    spectra, comps = load_spectra()
-    compsAnalysis = AnalyseSpectraComponents(spectra, saveDir='Figures/OriginalComps', title='Original 6 comps')
-    compsAnalysis.do_all()
-    # plot_mags(spectra, saveDir='Figures/OriginalComps')
+    spectra, comps, balProps, nameNotInBalProps = load_spectra()
+    # compsAnalysis = AnalyseSpectraComponents(spectra, saveDir='Figures/OriginalComps', title='Original 6 comps')
+    # compsAnalysis.do_all()
+    plotProperties = PlotProperties(spectra=spectra, balProps=balProps, removeNames=nameNotInBalProps, saveDir='Figures/OriginalComps')
+    plotProperties.mags_vs_comps()
     # plot_each_component(spectra, comps)
 
-    # MY 5-Comp PCA COMPS ANALYSIS
-    spectraPCA, comps, pcaMean = pca_analysis(spectra, nComps=5)
-    myPcaCompsAnalysis = AnalyseSpectraComponents(spectraPCA, saveDir='Figures/MyPCA', title='PCA 5 comps')
-    myPcaCompsAnalysis.do_all()
-    # plot_each_component(spectraPCA, comps, pcaMean)
-
-    # MY 5-Comp ICA COMPS ANALYSIS
-    spectraICA, comps, icaMean = ica_analysis(spectra, nComps=5)
-    myIcaCompsAnalysis = AnalyseSpectraComponents(spectraICA, saveDir='Figures/MyICA', title='Fast-ICA 5 comps')
-    myIcaCompsAnalysis.do_all()
-    # plot_each_component(spectraICA, comps, icaMean)
+    # # MY 5-Comp PCA COMPS ANALYSIS
+    # spectraPCA, comps, pcaMean = pca_analysis(spectra, nComps=5)
+    # myPcaCompsAnalysis = AnalyseSpectraComponents(spectraPCA, saveDir='Figures/MyPCA', title='PCA 5 comps')
+    # myPcaCompsAnalysis.do_all()
+    # # plot_each_component(spectraPCA, comps, pcaMean)
+    #
+    # # MY 5-Comp ICA COMPS ANALYSIS
+    # spectraICA, comps, icaMean = ica_analysis(spectra, nComps=5)
+    # myIcaCompsAnalysis = AnalyseSpectraComponents(spectraICA, saveDir='Figures/MyICA', title='Fast-ICA 5 comps')
+    # myIcaCompsAnalysis.do_all()
+    # # plot_each_component(spectraICA, comps, icaMean)
 
     plt.show()
 

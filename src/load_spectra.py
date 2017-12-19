@@ -7,15 +7,19 @@ def load_spectra(savedSpectra='data_files/created/spectra.pickle', savedProperti
     with open(savedSpectra, 'rb') as f:
         spectra = pickle.load(f)
 
-    # if savedProperties is not None:
-    #     with open(savedProperties, 'r') as f:
-    #         balProperties = json.load(f)
-    #     for name in spectra.keys():
-    #         try:
-    #             spectra[name]['snr'] = balProperties[name.replace('SDSSJ', '')]['snr']
-    #         except KeyError:
-    #             print(name)
-
     comps = get_components(componentsFile='data_files/given/dm_6c_16003000_171024.comp')
 
-    return spectra, comps
+    if savedProperties is not None:
+        nameNotInBalProps = []
+        with open(savedProperties, 'r') as f:
+            balProperties = json.load(f)
+        for name in spectra.keys():
+            try:
+                spectra[name]['snr'] = balProperties[name]['snr']
+            except KeyError:
+                print(name)
+                nameNotInBalProps.append(name)
+
+        return spectra, comps, balProperties, nameNotInBalProps
+    else:
+        return spectra, comps
