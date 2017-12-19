@@ -12,7 +12,7 @@ def get_mags(spectra, removeNames=[]):
     for name in names:
         if name not in removeNames:
             bal = 'BAL' if spectra[name]['balFlag'] else 'non-BAL'
-            if bal == 'BAL' and spectra[name]['mags'][0] != 0:
+            if spectra[name]['mags'][0] != 0:
                 magsArray.append(dict(zip(filters, spectra[name]['mags'])))
                 magsErrArray.append(dict(zip(filters, spectra[name]['magsErr'][0])))
                 weightsArray.append(spectra[name]['weights'])

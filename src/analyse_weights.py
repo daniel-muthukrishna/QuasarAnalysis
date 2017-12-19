@@ -72,13 +72,14 @@ def clustering(spectra, removeNames, numClusters=3, plotClusters=True, saveDir='
 
     clusters = {}
     for i in range(numClusters):
-        clusters[i] = {'weights': [], 'names': [], 'reconFluxes': [], 'sdssFluxes': [], 'balCounts': 0, 'nonBalCounts': 0}
+        clusters[i] = {'weights': [], 'names': [], 'reconFluxes': [], 'sdssFluxes': [], 'sdssFluxesErr': [], 'balCounts': 0, 'nonBalCounts': 0}
     for (idx, weightsRow), (idx2, nameDF) in zip(weightsDF.iterrows(), namesDF.iterrows()):
         name = nameDF.values[0]
         clusters[labels[idx]]['weights'].append(weightsRow.values)
         clusters[labels[idx]]['names'].append(name)
         clusters[labels[idx]]['reconFluxes'].append(spectra[name]['reconFlux'])
         clusters[labels[idx]]['sdssFluxes'].append(spectra[name]['sdssFlux'])
+        clusters[labels[idx]]['sdssFluxesErr'].append(spectra[name]['sdssFluxErr'])
         if spectra[name]['balFlag']:
             clusters[labels[idx]]['balCounts'] += 1
         else:

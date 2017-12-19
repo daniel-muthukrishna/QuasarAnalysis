@@ -41,20 +41,21 @@ def reconstruct_spectra(componentsFile, waveFile, weightsFile):
 
 
 def get_sdss_spectra(names, filenamesDict):
-    redshifts, fluxes, others = [], [], []
+    redshifts, fluxes, fluxesErr, others = [], [], [], []
 
     for name in names:
-        flux, z, otherInfo = get_sdss_dr12_spectrum(name, filenamesDict)
+        flux, fluxErr, z, otherInfo = get_sdss_dr12_spectrum(name, filenamesDict)
         redshifts.append(z)
         fluxes.append(flux)
+        fluxesErr.append(fluxErr)
         others.append(otherInfo)
         print(name, z, otherInfo['mag'])
 
-    return fluxes, redshifts, others
+    return fluxes, fluxesErr, redshifts, others
 
 
 def get_sdss_spectra_multiprocessing(names, filenamesDict):
-    redshifts, fluxes, others = [], [], []
+    redshifts, fluxes, fluxesErr, others = [], [], [], []
 
     pool = mp.Pool()
     results = [pool.apply_async(get_sdss_spectra, args=([name], filenamesDict)) for name in names]
@@ -63,18 +64,19 @@ def get_sdss_spectra_multiprocessing(names, filenamesDict):
 
     outputs = [p.get() for p in results]
     for out in outputs:
-        fluxesPart, redshiftsPart, othersPart = out
+        fluxesPart, fluxesErrPart, redshiftsPart, othersPart = out
         fluxes += fluxesPart
+        fluxesErr += fluxesErrPart
         redshifts += redshiftsPart
         others += othersPart
 
-    return fluxes, redshifts, others
+    return fluxes, fluxesErr, redshifts, others
 
 
 def spectra_dict(componentsFile, waveFile, weightsFile):
     reconWave, reconFluxes, names, balFlags, weights, comps = reconstruct_spectra(componentsFile, waveFile, weightsFile)
     filenamesDict = load_spectra_filenames()
-    sdssFluxes, sdssRedshifts, others = get_sdss_spectra_multiprocessing(names, filenamesDict)
+    sdssFluxes, sdssFluxesErr, sdssRedshifts, others = get_sdss_spectra_multiprocessing(names, filenamesDict)
     others = pd.DataFrame(others)
 
     spectraDict = {}
@@ -82,8 +84,9 @@ def spectra_dict(componentsFile, waveFile, weightsFile):
 
     for i in range(numSpectra):
         spectraDict[names[i]] = {'reconWave': reconWave, 'reconFlux': reconFluxes[i], 'balFlag': balFlags[i],
-                                 'sdssWave': reconWave, 'sdssFlux': sdssFluxes[i], 'sdssRedshifts': sdssRedshifts[i],
-                                 'weights': weights[i], 'mags': others['mag'][i], 'magsErr': others['magErr'][i]}
+                                 'sdssWave': reconWave, 'sdssFlux': sdssFluxes[i], 'sdssFluxErr': sdssFluxesErr[i],
+                                 'sdssRedshifts': sdssRedshifts[i], 'weights': weights[i],
+                                 'mags': others['mag'][i], 'magsErr': others['magErr'][i]}
 
     return spectraDict
 
@@ -135,7 +138,7 @@ def plot_each_component(spectra, comps, mean=0):
             plt.plot(wave, flux[name][compNum], label=compNum+1)
         plt.plot(wave, np.sum([flux[name][compNum] for compNum in range(numComps)], axis=0) + mean, label='$1\_to\_{0}$'.format(numComps))
         plt.xlabel('Wavelength ($\AA$)')
-        plt.ylabel("Median Fractional Difference")
+        plt.ylabel("Flux")
         plt.title("{0}: {1}".format(bal, name))
         plt.legend()
 

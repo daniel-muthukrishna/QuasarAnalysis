@@ -16,6 +16,7 @@ def get_sdss_dr12_spectrum(name, filepathsDict):
     with fits.open(filepathICA, memmap=False) as hdulist:
         z = hdulist[0].header['Z_ICA']
         flux = hdulist[0].data[0]
+        fluxErr = hdulist[0].data[1]
 
     otherInfo = {}
     with fits.open(filepathSDSS, memmap=False) as hdulist:
@@ -23,7 +24,7 @@ def get_sdss_dr12_spectrum(name, filepathsDict):
         otherInfo['mag'] = data['PSFMAG'][0]
         otherInfo['magErr'] = data['PSFMAGERR'][0]
 
-    return flux, z, otherInfo
+    return flux, fluxErr, z, otherInfo
 
 
 if __name__ == '__main__':

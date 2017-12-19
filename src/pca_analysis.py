@@ -13,9 +13,9 @@ def get_data_spectra(spectra):
     return np.array(sdssFluxes)
 
 
-def pca_analysis(spectra):
+def pca_analysis(spectra, nComps=5):
     sdssFluxes = get_data_spectra(spectra)
-    pca = PCA(n_components=5)
+    pca = PCA(n_components=nComps)
     pca.fit(sdssFluxes)
     weights = pca.fit_transform(sdssFluxes)
     comps = pca.components_.transpose()
@@ -39,9 +39,9 @@ def pca_spectra_dict(spectra, weights, reconFluxes):
     return spectraPCA
 
 
-def ica_analysis(spectra):
+def ica_analysis(spectra, nComps=5):
     sdssFluxes = get_data_spectra(spectra)
-    ica = FastICA(n_components=5)
+    ica = FastICA(n_components=nComps)
     ica.fit(sdssFluxes)
     weights = ica.fit_transform(sdssFluxes)
     comps = ica.components_.transpose()
