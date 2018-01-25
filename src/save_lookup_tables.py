@@ -38,15 +38,17 @@ def save_BAL_properties(filePath, savePath='data_files/created/balProperties.jso
         zCIV = data['Z_CIV']
         zCIII = data['Z_CIII']
         zPCA = data['Z_PCA']
-        ewCIV = data['REWE_CIV']
-        ewCIVErr = data['ERR_REWE_CIV']
-        ewCIII = data['REWE_CIII']
-        ewCIIIErr = data['ERR_REWE_CIII']
-        fwhmCIII = data['FWHM_CIII']
+        ewCIV = data['REW_CIV']
+        ewSIIV = data['REW_SIIV']
+        ewAlIII = data['REW_AlIII']
+        aiCIV = data['AI_CIV']
+        biCIV = data['BI_CIV']
+        absMagI = data['MI']
 
     for i in range(len(names)):
-        balProperties['SDSSJ'+names[i]] = {'snr': snr[i], 'ewCIV': ewCIV[i], 'ewCIVErr': ewCIVErr[i], 'ewCIII': ewCIII[i],
-                                   'ewCIIIErr': ewCIIIErr[i], 'zCIV': zCIV[i], 'zCIII': zCIII[i], 'zPCA': zPCA[i]}
+        balProperties['SDSSJ'+names[i]] = {'snr': snr[i], 'ewCIV': ewCIV[i], 'ewSIIV': ewSIIV[i], 'ewAlIII': ewAlIII[i],
+                                           'aiCIV': aiCIV[i], 'biCIV': biCIV[i], 'absMagI': absMagI[i],
+                                           'zCIV': zCIV[i], 'zCIII': zCIII[i], 'zPCA': zPCA[i]}
 
     with open(os.path.join(MAIN_DIR, savePath), 'w') as f:
         json.dump(balProperties, f, sort_keys=True)

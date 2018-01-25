@@ -12,14 +12,15 @@ def get_mags(spectra, removeNames=[], balProps=None):
     for name in names:
         if name not in removeNames:  # name not in DR12Q.fits
             bal = 'BAL' if spectra[name]['balFlag'] else 'non-BAL'
-            if spectra[name]['mags'][0] != 0:
+            if bal == 'BAL' and spectra[name]['mags'][0] != 0:
                 magsArray.append(dict(zip(filters, spectra[name]['mags'])))
                 magsErrArray.append(dict(zip(filters, spectra[name]['magsErr'])))
                 weightsArray.append(spectra[name]['weights'])
-                otherParams.append({'CIV_EW': balProps[name]['ewCIV'], 'CIV_EW_Err': balProps[name]['ewCIVErr'],
-                                    'CIII_EW': balProps[name]['ewCIII'], 'CIII_EW_Err': balProps[name]['ewCIIIErr'],
-                                    'z_CIV': balProps[name]['zCIV'], 'z_CIII': balProps[name]['zCIII'],
-                                    'z_PCA': balProps[name]['zPCA']})
+                otherParams.append({'CIV_EW': balProps[name]['ewCIV'], 'SIIV_EW': balProps[name]['ewSIIV'],
+                                    'balnicity_CIV': balProps[name]['biCIV'],
+                                    'absorptionIndex_CIV': balProps[name]['aiCIV']})
+                                    # 'z_CIV': balProps[name]['zCIV'], 'z_CIII': balProps[name]['zCIII'],
+                                    # 'z_PCA': balProps[name]['zPCA']})
 
     magsDF = pd.DataFrame(magsArray)
     magsErrDF = pd.DataFrame(magsErrArray)
@@ -40,7 +41,7 @@ class PlotProperties(object):
         fig.subplots_adjust(wspace=0, hspace=0)
         for i, f in enumerate(self.magDF.columns):
             for j, w in enumerate(self.weightsDF.columns):
-                ax[i, j].scatter(self.weightsDF[w], self.magDF[f], alpha=0.3)
+                ax[i, j].scatter(self.weightsDF[w], self.magDF[f], alpha=0.1, marker='.')
                 if i == len(self.magDF.columns) - 1:
                     ax[i, j].set_xlabel(w)
                 if j == 0:
@@ -58,8 +59,20 @@ class PlotProperties(object):
         #         # plt.errorbar(self.weightsDF[w], self.magDF[f], yerr=self.magErrDF[f], fmt='o')
         #         # plt.savefig("%s/title" % self.saveDir)
 
-
     def civ_vs_mags(self):
-        pass
+        fig, ax = plt.subplots(nrows=len(self.weightsDF.columns), ncols=len(self.otherParams.columns), sharex='col', sharey='row',
+                               figsize=(10, 10))
+        fig.subplots_adjust(wspace=0, hspace=0)
+        for i, f in enumerate(self.weightsDF.columns):
+            for j, p in enumerate(self.otherParams.columns):
+                ax[i, j].scatter(minus1_to_nan(self.otherParams[p]), self.weightsDF[f], alpha=0.1, marker='.')
+                if i == len(self.weightsDF.columns) - 1:
+                    ax[i, j].set_xlabel(p)
+                if j == 0:
+                    ax[i, j].set_ylabel(f)
+        plt.savefig('{0}/props_vs_comps'.format(self.saveDir), bbox_inches='tight')
 
 
+def minus1_to_nan(values):
+    """Replace every -1 with 'nan' and return a copy."""
+    return [float('nan') if x==-1 else x for x in values]

@@ -3,7 +3,7 @@ import json
 from src.component_reconstruction import get_components
 
 
-def load_spectra(savedSpectra='data_files/created/spectra.pickle', savedProperties='data_files/created/balProperties.json'):
+def load_spectra(savedSpectra='data_files/created/spectra2.pickle', savedProperties='data_files/created/balProperties.json'):
     with open(savedSpectra, 'rb') as f:
         spectra = pickle.load(f)
 
